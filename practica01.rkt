@@ -32,6 +32,22 @@
 ;; Problema 5
 ;; Problema 6
 ;; Problema 7
+(define (num-comb-monedas (n number?))
+  (num-comb-monedas-aux n 5))
+
+(define (num-comb-monedas-aux n prev)
+  {conds
+    [(negative? n) 0]
+    [(zero? n) 1]
+    [else
+     (+
+         (if (<= 5 prev) (num-comb-monedas-aux (- n 5) 5) 0)
+         (if (<= 2 prev) (num-comb-monedas-aux (- n 2) 2) 0)
+         (if (<= 1 prev) (num-comb-monedas-aux (- n 1) 1) 0)) 
+     ]
+    }
+  )
+
 ;; Problema 8
 ;; Problema 9
 ;; Problema 10
