@@ -17,6 +17,23 @@
   )
 ;; Problema 2
 ;; Problema 3
+
+
+(define (raro? numero)
+  
+   (define m (map string->number(map string (string->list (number->string numero)))))
+
+   (if (= (length m) 1 ) 
+     (= (exp (first m)) numero)
+    ;La siguiente linea solo funciona con numeros de aridad 2, no se como hacerlo recursivo
+     (= (+ ( exp(first m)) (exp(first(rest m)))) numero))
+  ;(= ( map + (map exp m)) numero) esto no jala por que no obtiene los numeros de la lista a sumar, pero es la forma corta del anterior
+  )
+
+ ;auxiliar obtener exp cubico
+(define (exp num)
+  (* num (* num num) ))
+
 ;; Problema 4
 (define descendente?
   (lambda nums
@@ -31,6 +48,18 @@
   )
 ;; Problema 5
 ;; Problema 6
+
+
+
+(define (primo? numb)
+;esto no da #f en todos los que no son primos, no se como iterar un stream para que se evaule el mod de numb de todos los elementos
+  ;antes de el (sequence->list (in-range 2 numb)) 
+  (if(= (mood numb 2) 0 ) #f #t )
+  )
+;auxiliar obtener modulo
+   (define (mood a b)
+      (-  a (* b (floor(/ a b))) )
+      )
 ;; Problema 7
 ;; Problema 8
 ;; Problema 9
