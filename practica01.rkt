@@ -16,6 +16,34 @@
       )
   )
 ;; Problema 2
+
+(define (tipos-lista l)
+  (cond
+    [(empty? l) "emptyList"]
+    [(cons (getType (car l)) (tipos-lista (cdr l)))]
+   )
+)
+
+
+(define (getType x)
+	(cond
+		[(boolean? x) "boolean"]
+                [(number? x) "number"]
+		[(char? x) "char"] 
+                [(string? x) "string"]
+                [(symbol? x) "symbol"]
+                [(keyword? x ) "keyword"]
+                [empty "list"]
+                [(list?) x "list"]
+                [(pair? x) "pair"]
+                [(null? x) "emptyList"]
+		[else "otro"]
+	)
+)
+
+
+
+
 ;; Problema 3
 
 
