@@ -52,12 +52,10 @@
    (define m (map string->number(map string (string->list (number->string numero)))))
 
    (if (= (length m) 1 ) 
-     (= (exp (first m)) numero)
-    ;La siguiente linea solo funciona con numeros de aridad 2, no se como hacerlo recursivo
-     (= (+ ( exp(first m)) (exp(first(rest m)))) numero))
-  ;(= ( map + (map exp m)) numero) esto no jala por que no obtiene los numeros de la lista a sumar, pero es la forma corta del anterior
+    (= (exp (first m)) numero)
+     (= ( foldl + 0 (map exp m)) numero) 
   )
-
+)
  ;auxiliar obtener exp cubico
 (define (exp num)
   (* num (* num num) ))
