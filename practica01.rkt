@@ -87,8 +87,42 @@
       (-  a (* b (floor(/ a b))) )
       )
 ;; Problema 7
+(define (num-comb-monedas (n number?))
+  (num-comb-monedas-aux n 5))
+
+(define (num-comb-monedas-aux n prev)
+  {cond
+    [(negative? n) 0]
+    [(zero? n) 1]
+    [else
+     (+
+         (if (<= 5 prev) (num-comb-monedas-aux (- n 5) 5) 0)
+         (if (<= 2 prev) (num-comb-monedas-aux (- n 2) 2) 0)
+         (if (<= 1 prev) (num-comb-monedas-aux (- n 1) 1) 0)) 
+     ]
+    }
+  )
+
 ;; Problema 8
 ;; Problema 9
+(define (rota (l list?))
+  (cons l (rotations l (- (length l) 1)))
+  )
+
+(define (rotations (l list?) (remaining number?))
+  (if (<= remaining 0)
+      '()
+      (let ([rotated (rotate l)])
+        (cons rotated (rotations rotated (- remaining 1)))
+        )
+      )
+  )
+
+(define (rotate (l list?))
+  (if (< (length l) 2) l
+      (append (cdr l) (list (first l)))
+      )
+  )
 ;; Problema 10
 
 (define-type Nat [Cero] [Suc (n Nat?)])
