@@ -73,6 +73,22 @@
     )
   )
 ;; Problema 5
+(define (getChar str) (string->list str))
+
+(define (getReverseString string) 
+                                  (define m (getChar string))
+
+                                  (reverse m)
+                                  )
+
+
+(define (palindromo? string)
+  (define m (getReverseString string))
+
+  (equal? (getChar string) m)
+  )
+
+
 ;; Problema 6
 
 
