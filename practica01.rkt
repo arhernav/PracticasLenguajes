@@ -120,6 +120,21 @@
   )
 
 ;; Problema 8
+
+;Problema 8. Promedio moda media prom-mod-med
+(define (prom-mod-med list) (writeln (getProm list))(writeln "mod")(writeln (getMedia list)))
+
+;Función auxiliar para problema 8
+(define (getProm l) (define m (foldl + 0 l)) (/ m (length l)))
+
+(define (getMedia l)
+  (define len1 (/ (length l) 2))
+  (cond
+                       [(exact-integer? len1) (getProm (list (list-ref l len1) (list-ref l (- len1 1))))]
+                       [else (list-ref l (exact-round (/ (length l) 2)))]
+                       ))
+
+
 ;; Problema 9
 (define (rota (l list?))
   (cons l (rotations l (- (length l) 1)))
