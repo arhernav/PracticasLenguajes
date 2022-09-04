@@ -121,6 +121,19 @@
                        ))
 
 
+(define (obtener-freq-mayor tablahs i freq-mayor)
+  (if (eq? i #f)
+      freq-mayor
+ (obtener-freq-mayor tablahs (hash-iterate-next tablahs i )
+                     (if (> (hash-iterate-value tablahs i ) freq-mayor )
+                         (hash-iterate-value tablahs i)
+                         freq-mayor
+                         )
+                     )
+ )
+  )
+
+
 ;; Problema 9
 ;; Problema 10
 
