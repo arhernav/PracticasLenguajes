@@ -90,23 +90,25 @@
 
 
 ;; Problema 6
-
-
-
-(define (primo? numb)
-;esto no da #f en todos los que no son primos, no se como iterar un stream para que se evaule el mod de numb de todos los elementos
-  ;antes de el (sequence->list (in-range 2 numb)) 
-  (if(= (mood numb 2) 0 ) #f #t )
+(define (primo? (n number?))
+  (if (<= n 0) #f
+      (primo-aux? n (ceiling (/ n 2))))
   )
-;auxiliar obtener modulo
-   (define (mood a b)
-      (-  a (* b (floor(/ a b))) )
+
+(define (divisible n m) (= (modulo n m) 0))
+
+(define (primo-aux? n m)
+  (if (= m 1) #t
+      (if (divisible n m) #f
+          (primo-aux? n (- m 1))
+          )
       )
+  )
 ;; Problema 7
 (define (num-comb-monedas (n number?))
   (num-comb-monedas-aux n 5))
 
-(define (num-comb-monedas-aux n prev)
+(define (num-comb-monedas-aux (n positive?) (prev number?))
   {cond
     [(negative? n) 0]
     [(zero? n) 1]
