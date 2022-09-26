@@ -2,7 +2,7 @@
 
 ;; Ejercicio 1
 (define-type Figura
-  [tirangulo (a number?) (b number?) (c number?)]
+  [triangulo (a number?) (b number?) (c number?)]
   [rectangulo (a number?) (b number?)]
   [rombo (l number?) (d number?) (D number?)]
   [paralelogramo (a number?) (b number?) (h number?)]
@@ -29,5 +29,31 @@
   )
 
 ;; Ejercicio 3
+
+(define-type SubTrenLoc
+  [locomotora (arrastre exact-nonnegative-integer?)]
+  [locRec (locB locomotora?) (restLoc SubTrenLoc?)]
+  )
+
+(define-type Vagon
+  [pasajeros (capacidad exact-nonnegative-integer?)]
+  [restaurante (mesas exact-nonnegative-integer?) (personal exact-nonnegative-integer?)]
+  [dormitorio (camas exact-nonnegative-integer?)]
+  )
+
+(define-type SubTrenVagon
+  [vagBase (vagB Vagon?)]
+  [vagRec (vagB Vagon?) (vagRes SubTrenVagon?)]
+  )
+
+(define-type Tren
+  [trenI (motor SubTrenLoc?) (vagones SubTrenVagon?)]
+  [trenD (vagones SubTrenVagon?) (motor SubTrenLoc?)]
+  [tren-V (vagones SubTrenVagon?)]
+  [tren-L (motor SubTrenLoc?)]
+)
+
+
+
 
 ;; Ejercicio 4
