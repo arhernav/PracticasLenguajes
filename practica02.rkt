@@ -57,3 +57,46 @@
 
 
 ;; Ejercicio 4
+
+(define (num-pasajeros (t Tren?))
+  (type-case Tren t
+    [trenI (motor vagones) (pasajeros-vagones vagones)]
+    [trenD (vagones motor) (pasajeros-vagones vagones)]
+    [trenID (motorI vagones motorD) (pasajeros-vagones vagones)]
+    [trenV (vagones) (pasajeros-vagones vagones)]
+    [trenL (motor) 0]
+   )
+  )
+
+(define (pasajeros-vagon (v Vagon?))
+  (type-case Vagon v
+    [pasajeros (cap) cap]
+    [restaurante (mes per) 0]
+    [dormitorio (cam) 0]
+    )
+  )
+
+(define (pasajeros-vagones (subVag SubTrenVagon?))
+  (type-case SubTrenVagon subVag
+    [vagBase (vagB) (pasajeros-vagon vagB)]
+    [vagRec (vagB vagR) (+ (pasajeros-vagon vagB) (pasajeros-vagones vagR))]
+    )
+  )
+
+
+;(Tren?
+ ;  (TrenID
+  ;  [SubTrenLoc ()]
+   ; [SubTrenVagon ()]
+    ;[SubTrenLoc ()]
+    ;))
+
+;(vagRec (dormitorio 10) (vagRec (restaurante 20  30) (vagBase (pasajeros 40))))
+
+;(SubTrenLoc? (locRec (locomotora 2) (locRec (locomotora 4) (locomotora 8))))
+
+;(trenID [locRec (locomotora 2) (locRec (locomotora 4) (locomotora 8))] [vagRec (dormitorio 10) (vagRec (dormitorio 20) (vagBase (dormitorio 30)))] [locRec (locomotora 2) (locRec (locomotora 4) (locomotora 8))])
+;(Tren? (trenI (locRec (locomotora 10) (locomotora 20)) (vagRec (dormitorio 10) (vagBase (restaurante 10 20)))))
+;(Tren? (trenD (vagRec (dormitorio 10) (vagBase (restaurante 10 20))) (locRec (locomotora 10) (locomotora 20))))
+;(Tren? (trenV (vagRec (pasajeros 10) (vagBase (restaurante 10 20)))))
+;(Tren? (trenL (locRec (locomotora 10) (locomotora 20))))
