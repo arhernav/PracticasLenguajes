@@ -1,6 +1,7 @@
 #lang plai
 
 ;; Ejercicio 1
+;
 (define-type Figura
   [triangulo (a number?) (b number?) (c number?)]
   [rectangulo (a number?) (b number?)]
@@ -11,7 +12,7 @@
 ;; Ejercicio 2
 (define (perimetro (f Figura?))
   (type-case Figura f
-    [tirangulo (a b c) (+ a b c)]
+    [triangulo (a b c) (+ a b c)]
     [rectangulo (a b) (* 2 (+ a b))]
     [rombo (l d D) (* 4 l)]
     [paralelogramo (a b h) (* 2 (+ a b))]
@@ -20,7 +21,7 @@
 
 (define (area (f Figura?))
   (type-case Figura f
-    [tirangulo (a b c) (let ([s (/ (+ a b c) 2)])
+    [triangulo (a b c) (let ([s (/ (+ a b c) 2)])
                          (sqrt [* s (- s a) (- s b) (- s c)]))]
     [rectangulo (a b) (* a b)]
     [rombo (l d D) (* D d 0.5)]
@@ -30,27 +31,48 @@
 
 ;; Ejercicio 3
 
+; Tipo de dato auxiliar para Tren
+; Ejemplo de SubTrenLoc: (locRec (locomotora 2) (locRec (locomotora 4) (locomotora 8)))
 (define-type SubTrenLoc
   [locomotora (arrastre exact-nonnegative-integer?)]
   [locRec (locB locomotora?) (restLoc SubTrenLoc?)]
   )
 
+
+; Tipo de dato auxiliar para SubTrenVagon
+; Ejemplos de  vagones:
+; 	   (pasajeros 10)
+;	   (dormitorio 20)
+;	   (restaurante 10 20)
 (define-type Vagon
   [pasajeros (capacidad exact-nonnegative-integer?)]
   [restaurante (mesas exact-nonnegative-integer?) (personal exact-nonnegative-integer?)]
   [dormitorio (camas exact-nonnegative-integer?)]
   )
 
+; Tipo de dato auxiliar para Tren
+; Ejemplo de SubTrenVagon: (vagRec (dormitorio 10) (vagRec (restaurante 20  30) (vagBase (pasajeros 40))))
 (define-type SubTrenVagon
   [vagBase (vagB Vagon?)]
   [vagRec (vagB Vagon?) (vagRes SubTrenVagon?)]
   )
 
+; Definicion de Tren
+; La definicion se realizo de esta manera para que no fuera posible alternar locomotoras con los demas tipos de vagones
+;Ejemplos de trenes:
+
+;	  (trenID [locRec (locomotora 2) (locRec (locomotora 4) (locomotora 8))] [vagRec (dormitorio 10) (vagRec (dormitorio 20) (vagBase (dormitorio 30)))] [locRec (locomotora 2) (locRec (locomotora 4) (locomotora 8))])
+;	  (trenI (locRec (locomotora 10) (locomotora 20)) (vagRec (dormitorio 10) (vagBase (restaurante 10 20))))
+; 	(trenD (vagRec (dormitorio 10) (vagBase (restaurante 10 20))) (locRec (locomotora 10) (locomotora 20)))
+; 	 (trenV (vagRec (pasajeros 10) (vagBase (restaurante 10 20))))
+;	 (trenL (locRec (locomotora 10) (locomotora 20)))
+
 (define-type Tren
   [trenI (motor SubTrenLoc?) (vagones SubTrenVagon?)]
   [trenD (vagones SubTrenVagon?) (motor SubTrenLoc?)]
-  [tren-V (vagones SubTrenVagon?)]
-  [tren-L (motor SubTrenLoc?)]
+  [trenID (motorI SubTrenLoc?) (vagones SubTrenVagon?) (motorD SubTrenLoc?)]
+  [trenV (vagones SubTrenVagon?)]
+  [trenL (motor SubTrenLoc?)]
 )
 
 
@@ -58,6 +80,7 @@
 
 ;; Ejercicio 4
 
+;Ejercicio 4 - Función que indica el númeor de pasajeros maximos en un tren
 (define (num-pasajeros (t Tren?))
   (type-case Tren t
     [trenI (motor vagones) (pasajeros-vagones vagones)]
@@ -68,6 +91,7 @@
    )
   )
 
+;Funcion auxiliar para la función num-pasajeros
 (define (pasajeros-vagon (v Vagon?))
   (type-case Vagon v
     [pasajeros (cap) cap]
@@ -75,7 +99,8 @@
     [dormitorio (cam) 0]
     )
   )
-
+  
+;Funcion auxiliar para la función num-pasajeros
 (define (pasajeros-vagones (subVag SubTrenVagon?))
   (type-case SubTrenVagon subVag
     [vagBase (vagB) (pasajeros-vagon vagB)]
@@ -84,6 +109,7 @@
   )
 
 
+;Ejercicio 4 - sin-cama. Funcion que indica el número de pasajeros sin cama
 (define (sin-cama (t Tren?))
   (type-case Tren t
     [trenI (motor vagones) (- (pasajeros-vagones vagones) (camas-vagones vagones))]
@@ -94,6 +120,7 @@
     )
   )
 
+;Funcion auxiliar para la función sin-cama
 (define (camas-vagon (v Vagon?))
   (type-case Vagon v
     [pasajeros (cap) 0]
@@ -101,7 +128,7 @@
     [dormitorio (cam) cam]
     )
   )
-
+;Funcion auxiliar para la función sin-cama
 (define (camas-vagones (subVag SubTrenVagon?))
   (type-case SubTrenVagon subVag
     [vagBase (vagB) (camas-vagon vagB)]
@@ -109,6 +136,7 @@
     )
   )
 
+;Ejercicio 4 - arrastre-usado. Funcion que devuelve el  arrastre usado por el tren
 (define (arrastre-usado (t Tren?))
   (type-case Tren t
     [trenI (motor vagones) (* (/ (num-vagones vagones) (arrastre-total motor)) 100)]
@@ -119,13 +147,16 @@
       )
   )
 
+
+;Funcion auxiliar para la función arrastre-usado
 (define (num-vagones (subVag SubTrenVagon?))
   (type-case SubTrenVagon subVag
     [vagBase (vagB) 1]
     [vagRec (vagB vagR) (+ 1 (num-vagones vagR))]
       )
   )
-
+  
+;Funcion auxiliar para la función arrastre-usado
 (define (arrastre-total (subLoc SubTrenLoc?))
   (type-case SubTrenLoc subLoc
     [locomotora (arrastre) arrastre]
@@ -133,7 +164,7 @@
       )
   )
 
-
+;Ejercicio 4 - max-comensales. Devuelve el número maximo de comensales que pueden ser atendidos
 (define (max-comensales (t Tren?))
   (type-case Tren t
     [trenI (motor vagones) (comensales-vagones vagones)]
@@ -143,9 +174,11 @@
     [trenL (motor) 0]
     )
   )
-
+  
+;Funcion auxiliar para la función max-comensales
 (define (get-min x y) (if (< x y) x y))
 
+;Funcion auxiliar para la función max-comensales
 (define (comensales-vagon (v Vagon?))
   (type-case Vagon v
     [pasajeros (cap) 0]
@@ -153,7 +186,8 @@
     [dormitorio (cam) 0]
     )
   )
-
+  
+;Funcion auxiliar para la función max-comensales
 (define (comensales-vagones (subVag SubTrenVagon?))
   (type-case SubTrenVagon subVag
     [vagBase (vagB) (comensales-vagon vagB)]
@@ -161,23 +195,3 @@
     )
   )
 
-
-
-
-
-;(Tren?
- ;  (TrenID
-  ;  [SubTrenLoc ()]
-   ; [SubTrenVagon ()]
-    ;[SubTrenLoc ()]
-    ;))
-
-;(vagRec (dormitorio 10) (vagRec (restaurante 20  30) (vagBase (pasajeros 40))))
-
-;(SubTrenLoc? (locRec (locomotora 2) (locRec (locomotora 4) (locomotora 8))))
-
-;(trenID [locRec (locomotora 2) (locRec (locomotora 4) (locomotora 8))] [vagRec (dormitorio 10) (vagRec (dormitorio 20) (vagBase (dormitorio 30)))] [locRec (locomotora 2) (locRec (locomotora 4) (locomotora 8))])
-;(Tren? (trenI (locRec (locomotora 10) (locomotora 20)) (vagRec (dormitorio 10) (vagBase (restaurante 10 20)))))
-;(Tren? (trenD (vagRec (dormitorio 10) (vagBase (restaurante 10 20))) (locRec (locomotora 10) (locomotora 20))))
-;(Tren? (trenV (vagRec (pasajeros 10) (vagBase (restaurante 10 20)))))
-;(Tren? (trenL (locRec (locomotora 10) (locomotora 20))))
