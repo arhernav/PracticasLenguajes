@@ -109,6 +109,31 @@
     )
   )
 
+(define (arrastre-usado (t Tren?))
+  (type-case Tren t
+    [trenI (motor vagones) (* (/ (num-vagones vagones) (arrastre-total motor)) 100)]
+    [trenD (vagones motor) (* (/ (num-vagones vagones) (arrastre-total motor)) 100)]
+    [trenID (motorI vagones motorD) (* (/ (num-vagones vagones) (+ (arrastre-total motorI) (arrastre-total motorD)) ) 100)]
+    [trenV (vagones) (print "No hay locomotoras para mover el tren")]
+    [trenL (motor) 0]
+      )
+  )
+
+(define (num-vagones (subVag SubTrenVagon?))
+  (type-case SubTrenVagon subVag
+    [vagBase (vagB) 1]
+    [vagRec (vagB vagR) (+ 1 (num-vagones vagR))]
+      )
+  )
+
+(define (arrastre-total (subLoc SubTrenLoc?))
+  (type-case SubTrenLoc subLoc
+    [locomotora (arrastre) arrastre]
+    [locRec (locB locR) (+ (locomotora-arrastre locB) (arrastre-total locR))]
+      )
+  )
+
+
 
 
 ;(Tren?
