@@ -134,6 +134,35 @@
   )
 
 
+(define (max-comensales (t Tren?))
+  (type-case Tren t
+    [trenI (motor vagones) (comensales-vagones vagones)]
+    [trenD (vagones motor) (comensales-vagones vagones)]
+    [trenID (motorI vagones motorD) (comensales-vagones vagones)]
+    [trenV (vagones) (comensales-vagones vagones)]
+    [trenL (motor) 0]
+    )
+  )
+
+(define (get-min x y) (if (< x y) x y))
+
+(define (comensales-vagon (v Vagon?))
+  (type-case Vagon v
+    [pasajeros (cap) 0]
+    [restaurante (mes per) (get-min (* mes 4) (* per 8))]
+    [dormitorio (cam) 0]
+    )
+  )
+
+(define (comensales-vagones (subVag SubTrenVagon?))
+  (type-case SubTrenVagon subVag
+    [vagBase (vagB) (comensales-vagon vagB)]
+    [vagRec (vagB vagR) (+ (comensales-vagon vagB) (comensales-vagones vagR))]
+    )
+  )
+
+
+
 
 
 ;(Tren?
