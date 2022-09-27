@@ -84,6 +84,33 @@
   )
 
 
+(define (sin-cama (t Tren?))
+  (type-case Tren t
+    [trenI (motor vagones) (- (pasajeros-vagones vagones) (camas-vagones vagones))]
+    [trenD (vagones motor) (- (pasajeros-vagones vagones) (camas-vagones vagones))]
+    [trenID (motorI vagones motorD) (- (pasajeros-vagones vagones) (camas-vagones vagones))]
+    [trenV (vagones) (- (pasajeros-vagones vagones) (camas-vagones vagones))]
+    [trenL (motor) 0]
+    )
+  )
+
+(define (camas-vagon (v Vagon?))
+  (type-case Vagon v
+    [pasajeros (cap) 0]
+    [restaurante (mes per) 0]
+    [dormitorio (cam) cam]
+    )
+  )
+
+(define (camas-vagones (subVag SubTrenVagon?))
+  (type-case SubTrenVagon subVag
+    [vagBase (vagB) (camas-vagon vagB)]
+    [vagRec (vagB vagR) (+ (camas-vagon vagB) (camas-vagones vagR))]
+    )
+  )
+
+
+
 ;(Tren?
  ;  (TrenID
   ;  [SubTrenLoc ()]
