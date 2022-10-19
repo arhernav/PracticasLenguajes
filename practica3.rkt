@@ -1,5 +1,12 @@
 #lang plai
 
+;; Integrantes:
+;;	Armando Hernández Navarro - 317340347
+;;	Juan Carlos Zenteno Pompa - 316251608
+;;	Francisco Javier Becerril Lara - 317114490
+
+
+
 ;; definiciones básicas
 (define-type AST
 	[id (i symbol?)]
