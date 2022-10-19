@@ -31,6 +31,19 @@
             (op operador (map parse (rest opsexp)))
         )
     )
+
+    (define (parse-params (params (listof symbol?))) params)
+    (define (parse-bindings (bindings (listof (listof pair?))))
+        (map (lambda (b)
+               (if (symbol? (first b))
+                   (binding (first b) (parse (second b)))
+                   (error "Identificador inválido.")
+                   )
+               )
+             bindings
+    ))
+    (define (parse-args (args (listof AST?))) args)
+  
     (cond
         [(symbol? sexp)
             (case sexp
@@ -39,6 +52,17 @@
                 [else (id sexp)]
             )]
         [(number? sexp) (num sexp)]
+        [(eq? 'fun (first sexp))
+            (fun
+                (parse-params (second sexp))
+                (parse (third sexp)))
+        ]
+        [(eq? 'with (first sexp))
+            (with (parse-bindings (second sexp)) (parse (third sexp)))]
+        [(eq? 'with* (first sexp))
+            (with* (parse-bindings (second sexp)) (parse (third sexp)))]
+        [(eq? 'app (first sexp))
+            (app (parse (second sexp)) (parse-args (third sexp)))]
         [(list? sexp) (case (first sexp)
             [(+ - * / modulo expt not) (parse-op sexp)]
         )]
