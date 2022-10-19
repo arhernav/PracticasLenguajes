@@ -53,10 +53,19 @@
             valor
             fwae-ast
         )]
-        ; La expresión PUEDE tener IDs y hay que buscar en ellos a sub-id
+        #| La expresión PUEDE tener IDs y hay que buscar en ellos a sub-id
+           La composicion de funciones en la que aqui primero se invoca primero a <subst>, hace
+           el interprete gloton, esto se debe a que realiza la substitución al momento de analizar
+           el id de la sub-expresion, esto lo realiza con todos los argumentos de la operación.
+          |#
         [(op? fwae-ast) (op (op-f fwae-ast)
             (map (lambda (sub-exp) (subst sub-exp sub-id valor)) (op-args fwae-ast)))]
-        ; Caso homóloga al anterior
+        #| Caso homóloga al anterior
+           La composicion de funciones en la que aqui primero se invoca primero a <subst>, hace
+           el interprete gloton, esto se debe a que realiza la substitución al momento de analizar
+           el id de la sub-expresion, esto lo realiza con todos los argumentos de la apliación.
+          |#
+     
         [(app? fwae-ast) (
              (map (lambda (sub-exp) (subst sub-exp sub-id valor)) (op-args fwae-ast)))]
         ; La expresión NO puede tener IDs
@@ -77,6 +86,11 @@
             )
         ]
     [fun (_ __) fwae-ast]
+       #|  La composicion de funciones en la que aqui primero se invoca primero a <interp>, hace
+           el interprete gloton, esto se debe a que realiza la interpretacion al momento de analizar
+           el id del binding, esto lo realiza con todos los argumentos del with, y para relaizar esta interpretación
+            se aplica primero sa substitución de la expresion.
+          |#
     [with (bindings body)
           (interp (foldl
                    {lambda (binding expr)
@@ -84,7 +98,16 @@
                    body
                    bindings
                    ))]
+       #|  La composicion de funciones en la que aqui primero se invoca primero a <interp>, hace
+           el interprete gloton, esto se debe a que realiza la interpretacion al momento de analizar
+           el id del binding, esto lo realiza con todos los argumentos del with*.
+          |#
     [with* (bindings body) (interp (with {with*-aux (car bindings) (cdr bindings)} body))]
+    #|  La composicion de funciones en la que aqui primero se invoca primero a <interp>, hace
+        el interprete gloton, esto se debe a que realiza la interpretacion al momento de analizar
+        el id del binding, esto lo realiza con todos los argumentos de la apliación, y para realizar
+         esta interpretación se substituye el parametro del argumento con su argumento.
+        |#
     [app (f args)
          (if (fun? f)
              (if (eq? (length (fun-params f) (length args)))
@@ -102,6 +125,10 @@
     )
 )
 ; función auxiliar para el with anidado. Realiza las sustituciones pertinentes en las variables
+   #|  La composicion de funciones en la que aqui primero se invoca primero a <subst>, hace
+           el interprete gloton, esto se debe a que realiza la substitución al momento de analizar
+           el valor del binding, esto lo realiza con todos los argumentos del with*.
+          |#
 (define (with*-aux sustitutor resto)
   (let
       ([r (map
