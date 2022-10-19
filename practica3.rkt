@@ -80,10 +80,10 @@
     [bool (b) b]
     [id (_) (error "Variable Libre")]
     [op (p args)
-        (if (eq? (procedure-arity p) (length args))
+        ;(if (eq? (procedure-arity p) (length args))
             {apply p [map (lambda (arg) (interp arg)) args]}
-            {error "Operación con un número de argumentos incorrecto"}
-            )
+            ;{error "Operación con un número de argumentos incorrecto"}
+            ;)
         ]
     [fun (_ __) fwae-ast]
        #|  La composicion de funciones en la que aqui primero se invoca primero a <interp>, hace
@@ -138,4 +138,10 @@
       ])
     [with*-aux (first r) (cdr r)]
     )
+  )
+
+
+; Punto extra areaelipse: AST-num, AST-num → number
+(define (areaelipse (A num?) (B num?))
+  (* (interp A) (interp B) 3.15)
   )
