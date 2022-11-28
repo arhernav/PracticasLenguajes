@@ -5,13 +5,14 @@
 ;;	Juan Carlos Zenteno Pompa - 316251608
 ;;	Francisco Javier Becerril Lara - 317114490
 
-;; definiciones básicas
 (define-type AST
   [id (i symbol?)]
   [num (n number?)]
   [bool (b boolean?)]
   [op (f procedure?) (args (listof AST?))]
   [op-bool (f symbol?) (lhs AST?) (rhs AST?)]
+  [branch (test AST?) (then AST?) (else AST?)]
+  [multi-branch (conds (listof branch-cond?)) (else AST?)]
   [with (bindings (listof binding?)) (body AST?)]
   [with* (bindings (listof binding?)) (body AST?)]
   [fun (params (listof symbol?)) (body AST?)]
@@ -24,30 +25,39 @@
 
 (define-type Binding
   [binding (id symbol?) (value AST?)]
+  [branch-cond (test AST?) (then AST?)]
 )
 
 (define-type Environment
   [mtSub]
   [aSub (name symbol?) (value AST?) (bSub Environment?)])
 
-(define-type FWAEL-Value
+(define-type CFWAEL-Value
   [numV (n number?)]
   [boolV (b boolean?)]
-  [listV (l (listof FWAEL-Value?))]
+  [listV (l (listof CFWAEL-Value?))]
   [closureV (param (listof symbol?)) (body AST?) (env Environment?)])
 
 ;; Ejercicio 1
 (define (parse sexp)
   ; Auxiliar que parsea los operadores
   (define (parse-op opsexp)
-    (let ([operador (case (first opsexp)
-                      [(+) +]
-                      [(-) -]
-                      [(*) *]
-                      [(/) /]
-                      [(modulo) modulo]
-                      [(expt) expt]
-                      [(not) not])])
+    (let
+        ([operador (case (first opsexp)
+                     [(+) +]
+                     [(-) -]
+                     [(*) *]
+                     [(/) /]
+                     [(modulo) modulo]
+                     [(expt) expt]
+                     [(not) not]
+                     [(<) <]
+                     [(<=) <=]
+                     [(=) =]
+                     [(>) >]
+                     [(>=) >=]
+                     [else (error "Operación no soportada: " (first opsexp))]
+                     )])
       (op operador (map parse (rest opsexp)))))
   (define (parse-params (params (listof symbol?))) params)
 
@@ -59,6 +69,13 @@
            (binding (first b) (parse (second b)))
            (error "Identificador inválido."))
        ) bindings))
+  ;; Parsea los condicionales
+  (define (parse-conds (conds (listof pair?)))
+    (map (lambda (p)
+           (let
+               ([test (first p)]
+                [then (second p)])
+             (branch-cond (parse test) (parse then)))) conds))
   ;; Análisis de casos
   (cond
     [(number? sexp) (num sexp)]
@@ -78,6 +95,10 @@
              {second sexp}
              {error "Variables inválidas en la función."})
          (parse (third sexp)))]
+       [(if)
+        (branch (parse (second sexp)) (parse (third sexp)) (parse (fourth sexp)))]
+       [(cond)
+        (multi-branch (parse-conds (second sexp)) (parse (third sexp)))]
        [(with)
         (with (parse-bindings (second sexp)) (parse (third sexp)))]
        [(with*)
@@ -90,11 +111,14 @@
         (lcar (parse (second sexp)))]
        [(lcdr)
         (parse (second sexp))]
+       [(or and)
+        (op-bool (first sexp) (parse (second sexp)) (parse (third sexp)))]
        [else (parse-op sexp)]
        )
      ]
     [else (error "Error sintáctico, valor no parseable.")])
-  ) ;; TODO revisar la aridad.
+  )
+
 
 ;; Ejercicio 2
 (define (desugar (s-fwael-expr AST?))
@@ -102,7 +126,7 @@
   (define (desugar-app arguments func)
     (if (fun? func)
         (app (fun (fun-params func) (desugar-app (cdr arguments) (fun-body func))) (list (car arguments)))
-        func))
+        (app func (map desugar arguments))))
   (type-case AST s-fwael-expr
     [id (_) s-fwael-expr]
     [num (_) s-fwael-expr]
@@ -110,6 +134,12 @@
     [op (f args) (op f (map desugar args))]
     [op-bool (f lhs rhs)
              (op-bool f (desugar lhs) (desugar rhs))]
+    [branch (test then else) (branch (desugar test) (desugar then) (desugar else))]
+    [multi-branch (conds else)
+                  (foldr
+                   (lambda (conditional acc)
+                     (branch (branch-cond-test conditional) (branch-cond-then conditional) acc))
+                   else conds)]
     [with (bindings body)
           (foldr
            (lambda (b acc)
@@ -142,7 +172,7 @@
       [mtSub () (error "Variable libre:" sub-id)]
       [aSub (name value bsub)
             (if (eq? name sub-id) value
-                (find-inenv (sub-id) (bsub)))]
+                (find-inenv bsub))]
       ))
   (type-case AST fwael-expr
     [id (i) (if (eq? i sub-id) (find-inenv env) (fwael-expr))]
@@ -150,6 +180,7 @@
     [bool (_) fwael-expr]
     [op (f args) (op f (map (lambda (expr) (subst expr sub-id env)) args))]
     [op-bool (f lhs rhs) (op-bool f (subst lhs sub-id env) (subst rhs sub-id env))]
+    [branch (test then else) (branch (subst test sub-id env) (subst then sub-id env) (subst else sub-id env))]
     [lempty () lempty]
     [lcons (l r) (lcons (subst l sub-id env) (subst r sub-id env))]
     [lcar (l) (subst l sub-id env)]
@@ -164,47 +195,57 @@
 ;; Ejercicio 4
 (define (interp fwael-expr env)
   ; regresa los valores operables envueltos en el tipo FWAEL-Value
-  (define (unwrap (v FWAEL-Value?))
-    (type-case FWAEL-Value v
+  (define (unwrap (v CFWAEL-Value?))
+    (type-case CFWAEL-Value v
       [numV (n) n]
       [boolV (b) b]
-      [listV (l) (map unwrap l)]
+      [listV (l) l]
       [closureV (params body env) (fun (fun params body) env)]
       ))
   ; recibe un valor y trata de envolverlo como un FWAEL-Value
   (define (wrap v env)
     (cond 
-      [(number? v) (numV v)]
-      [(bool? v) (boolV v)]
+      [(bool? v) (boolV (bool-b v))]
+      [(boolean? v) (boolV v)]
       [(list? v) (map wrap v)]
-      [(fun? v) (closureV (fun-params v) (fun-body v) env)]
+      [(fun? v) (closureV (fun-params v) (fun-body v) (env))]
       [(num? v) (numV (num-n v))]
+      [(number? v) (numV v)]
       )
     )
+  
   (type-case AST fwael-expr
-    [id (i) (subst fwael-expr i env)]
+    [id (i) (interp (subst fwael-expr i env) env)]
     [num (n) (numV n)]
     [bool (b) (boolV b)]
-    [op-bool (f lhs rhs) (wrap (cond
-                                 [('or)
+    [op-bool (f lhs rhs) (wrap (case f
+                                 [(or)
                                   (or (unwrap (interp lhs env)) (unwrap (interp rhs env)))]
-                                 [('and)
+                                 [(and)
                                   (and (unwrap (interp lhs env)) (unwrap (interp rhs env)))]
-                                 ))]
+                                 ) '())]
     [op (f args)
         (wrap (apply f
                (map (lambda (v)
                       (unwrap (interp v env)))
                     args)) '())]
+    [branch (test then else)
+            (let ([b (interp test env)])
+              (if (and (boolV? b) (boolV-b b)) (interp then (env)) (interp else (env))))]
     [fun (params body) (closureV params body env)]
     [app (f arg)
-          (if (fun? f)
-             (interp (fun-body f) (aSub (car (fun-params f)) (car arg) env))
-             (error "Incompatibilidad de aridad" arg f))]
-    [lcons (l r) (listV (cons l (interp r env)))]
+         (cond
+           [(fun? f)
+            (interp (fun-body f) (aSub (car (fun-params f)) (car arg) env))]
+           [(id? f)
+            (interp (app (subst f (id-i f) env) arg) env)]
+           [else
+            (error "Incompatibilidad de aridad" arg f)])
+         ]
+    [lcons (l r) (listV (cons (interp l env) (unwrap (interp r env))))]
     [lcar (l) (if (listV? l) (car (listV-l l)) (error "No es una lista"))]
     [lcdr (l) (if (listV? l) (cdr (listV-l l)) (error "No es una lista"))]
+    [lempty () (listV null)]
     [else (error "Azúcar sintactica detectada" fwael-expr)]
     )
   )
-
